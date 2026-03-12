@@ -13,7 +13,7 @@ users_col  = None
 if MONGO_URI:
     try:
         from pymongo import MongoClient
-        client    = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client = MongoClient(MONGO_URI,serverSelectionTimeoutMS=5000,tls=True,tlsAllowInvalidCertificates=True)
         client.admin.command('ping')   # test connection
         db        = client['gremlin']
         users_col = db['users']
