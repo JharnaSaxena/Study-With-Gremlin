@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gremlin — Setup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="page-onboarding">
+
+  <header class="ob-header">
+    <div class="ob-brand">
+      <div class="ob-brand-icon">✦</div>
+      <div class="ob-brand-name">Gremlin</div>
+    </div>
+    <div class="step-dots" id="step-dots">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot idle" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot idle" id="dot-3">3</div>
+      <div class="step-line" id="line-3"></div>
+      <div class="step-dot idle" id="dot-4">4</div>
+      <div class="step-line" id="line-4"></div>
+      <div class="step-dot idle" id="dot-5">5</div>
+    </div>
+  </header>
+
+  <div class="ob-body">
+    <div class="ob-card">
+
+      <!-- STEP 1: Mode -->
+      <div class="step-page active" id="step-1">
+        <div class="step-tag">Step 1 of 5</div>
+        <h2 class="ob-title">How do you want to work?</h2>
+        <p class="ob-desc">Gremlin adjusts your schedule's intensity, breaks, and cognitive load cap based on your mode. You can change this anytime.</p>
+        <div class="mode-grid">
+          <div class="mode-card" data-mode="gentle" onclick="selectMode(this)">
+            <div class="mode-icon">🍃</div>
+            <div class="mode-name">Gentle</div>
+            <div class="mode-desc">Short sessions, frequent breaks, low load. For recovery days or rough weeks.</div>
+          </div>
+          <div class="mode-card sel" data-mode="balanced" onclick="selectMode(this)">
+            <div class="mode-icon">⚖️</div>
+            <div class="mode-name">Balanced</div>
+            <div class="mode-desc">Default. Steady progress with built-in buffers. Designed for sustainability.</div>
+          </div>
+          <div class="mode-card" data-mode="intense" onclick="selectMode(this)">
+            <div class="mode-icon">🔥</div>
+            <div class="mode-name">Intense</div>
+            <div class="mode-desc">Longer blocks, higher load cap. For exam season or strong willpower days.</div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <div></div>
+          <button class="btn-next" onclick="goStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Chronotype + Sleep -->
+      <div class="step-page" id="step-2">
+        <div class="step-tag">Step 2 of 5</div>
+        <h2 class="ob-title">When are you at your best?</h2>
+        <p class="ob-desc">Gremlin uses a circadian energy model — your hard subjects go to your peak hours. Sleep is a hard constraint, never violated.</p>
+        <div class="chrono-row">
+          <button class="chrono-btn sel" data-chrono="morning" onclick="selectChrono(this)">
+            <div class="chrono-icon">🌅</div>
+            <div class="chrono-label">Morning</div>
+          </button>
+          <button class="chrono-btn" data-chrono="neutral" onclick="selectChrono(this)">
+            <div class="chrono-icon">☀️</div>
+            <div class="chrono-label">Midday</div>
+          </button>
+          <button class="chrono-btn" data-chrono="evening" onclick="selectChrono(this)">
+            <div class="chrono-icon">🌙</div>
+            <div class="chrono-label">Evening</div>
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+          <div class="field-group">
+            <label>Sleep time (bedtime)</label>
+            <input type="time" id="sleep-start" class="fi" value="23:00" />
+          </div>
+          <div class="field-group">
+            <label>Wake-up time</label>
+            <input type="time" id="sleep-end" class="fi" value="07:00" />
+          </div>
+        </div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="goStep(1)">← Back</button>
+          <button class="btn-next" onclick="goStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Subjects -->
+      <div class="step-page" id="step-3">
+        <div class="step-tag">Step 3 of 5</div>
+        <h2 class="ob-title">What are you studying?</h2>
+        <p class="ob-desc">Add your BTech subjects and secondary goal. Difficulty and drain scores power the priority algorithm — P(s) = 0.5×difficulty + 0.2×drain + 0.3×goal_weight.</p>
+        <div class="subject-list" id="subject-list"></div>
+        <div class="add-row">
+          <input type="text" id="new-subj" class="fi" placeholder="Subject name" />
+          <select id="new-type" class="fi">
+            <option value="study">BTech</option>
+            <option value="goal">Goal</option>
+          </select>
+          <select id="new-diff" class="fi">
+            <option value="1">Easy (1)</option>
+            <option value="2">Light (2)</option>
+            <option value="3" selected>Medium (3)</option>
+            <option value="4">Hard (4)</option>
+            <option value="5">Beast (5)</option>
+          </select>
+          <button class="btn-add" onclick="addSubject()">+ Add</button>
+        </div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="goStep(2)">← Back</button>
+          <button class="btn-next" onclick="goStep(4)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: College timetable -->
+      <div class="step-page" id="step-4">
+        <div class="step-tag">Step 4 of 5</div>
+        <h2 class="ob-title">Add your college timetable</h2>
+        <p class="ob-desc">College slots are hard constraints — the optimizer will never assign study blocks here. Enter times in 24h format (e.g. 09:00).</p>
+        <div class="college-wrap" id="college-wrap"></div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="goStep(3)">← Back</button>
+          <button class="btn-next" onclick="goStep(5)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: Hours -->
+      <div class="step-page" id="step-5">
+        <div class="step-tag">Step 5 of 5</div>
+        <h2 class="ob-title">How much can you commit?</h2>
+        <p class="ob-desc">Be honest. Gremlin's adherence target is 60% — achieving more than that is a win. Consistent modest effort beats occasional heroics.</p>
+        <div class="range-group">
+          <div class="range-header">
+            <span class="range-lbl">Daily study hours (BTech)</span>
+            <span class="range-val" id="study-val">3h</span>
+          </div>
+          <input type="range" id="study-hours" min="1" max="8" step="0.5" value="3" oninput="document.getElementById('study-val').textContent=this.value+'h'" />
+        </div>
+        <div class="range-group">
+          <div class="range-header">
+            <span class="range-lbl">Daily hours for secondary goal</span>
+            <span class="range-val" id="goal-val">1.5h</span>
+          </div>
+          <input type="range" id="goal-hours" min="0.5" max="5" step="0.5" value="1.5" oninput="document.getElementById('goal-val').textContent=this.value+'h'" />
+        </div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="goStep(4)">← Back</button>
+          <button class="btn-next" onclick="buildSchedule()">Build my schedule ✦</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading hidden" id="loading">
+    <div>
+      <div class="spin"></div>
+      <div class="load-txt">Gremlin is solving your schedule…</div>
+      <div class="load-math">Z = Σ priority(s) × energy(t) × cognitive_fit(s,t) × x[s][t]</div>
+    </div>
+  </div>
+
+  <script>
+    const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    let subjects = [
+      {name:'Core BTech', type:'study', difficulty:4, drain:0.7, goal_weight:0.8},
+      {name:'Secondary Goal', type:'goal', difficulty:3, drain:0.5, goal_weight:0.9}
+    ];
+    let collegeSlots = {Mon:[],Tue:[],Wed:[],Thu:[],Fri:[],Sat:[],Sun:[]};
+    let mode = 'balanced';
+    let chronotype = 'morning';
+
+    function selectMode(el) {
+      document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('sel'));
+      el.classList.add('sel');
+      mode = el.dataset.mode;
+    }
+    function selectChrono(el) {
+      document.querySelectorAll('.chrono-btn').forEach(c => c.classList.remove('sel'));
+      el.classList.add('sel');
+      chronotype = el.dataset.chrono;
+    }
+
+    function goStep(n) {
+      document.querySelectorAll('.step-page').forEach(p => p.classList.remove('active'));
+      document.getElementById('step-' + n).classList.add('active');
+      for(let i=1;i<=5;i++) {
+        const dot = document.getElementById('dot-' + i);
+        const line = document.getElementById('line-' + i);
+        if(i < n) { dot.className = 'step-dot done'; }
+        else if(i === n) { dot.className = 'step-dot active'; }
+        else { dot.className = 'step-dot idle'; }
+        if(line) line.className = i < n ? 'step-line done' : 'step-line';
+      }
+      if(n === 4) renderCollegeGrid();
+    }
+
+    function renderSubjects() {
+      const list = document.getElementById('subject-list');
+      list.innerHTML = subjects.map((s,i) => `
+        <div class="subject-row">
+          <span class="s-name">${s.name}</span>
+          <span class="s-badge ${s.type==='goal'?'badge-goal':'badge-study'}">${s.type==='goal'?'Goal':'BTech'}</span>
+          <div class="diff-pips">${[1,2,3,4,5].map(n=>`<div class="pip${n<=s.difficulty?' on':''}"></div>`).join('')}</div>
+          <button class="btn-rm" onclick="removeSubject(${i})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function addSubject() {
+      const name = document.getElementById('new-subj').value.trim();
+      if(!name) return;
+      const type = document.getElementById('new-type').value;
+      const diff = parseInt(document.getElementById('new-diff').value);
+      subjects.push({name, type, difficulty: diff, drain: diff/5*0.8, goal_weight: type==='goal'?0.9:0.6});
+      document.getElementById('new-subj').value = '';
+      renderSubjects();
+    }
+
+    function removeSubject(i) {
+      subjects.splice(i,1);
+      renderSubjects();
+    }
+
+    function renderCollegeGrid() {
+      const wrap = document.getElementById('college-wrap');
+      wrap.innerHTML = DAYS.map(d => `
+        <div class="day-col">
+          <div class="day-h">${d}</div>
+          <div id="slots-${d}">
+            ${(collegeSlots[d]||[]).map((sl,i) => `
+              <div class="slot-tag">
+                <span>${sl.start}–${sl.end}</span>
+                <button class="slot-rm" onclick="removeSlot('${d}',${i})">✕</button>
+              </div>
+            `).join('')}
+          </div>
+          <div class="add-slot">
+            <input type="time" id="s-${d}" placeholder="09:00" value="09:00" />
+            <input type="time" id="e-${d}" placeholder="10:00" value="10:00" />
+            <button class="btn-slot" onclick="addSlot('${d}')">+ Add</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addSlot(day) {
+      const start = document.getElementById('s-' + day).value;
+      const end = document.getElementById('e-' + day).value;
+      if(!start || !end) return;
+      if(!collegeSlots[day]) collegeSlots[day] = [];
+      collegeSlots[day].push({start, end});
+      renderCollegeGrid();
+    }
+
+    function removeSlot(day, idx) {
+      collegeSlots[day].splice(idx, 1);
+      renderCollegeGrid();
+    }
+
+    async function buildSchedule() {
+      document.getElementById('loading').classList.remove('hidden');
+      const profile = {
+        mode,
+        chronotype,
+        sleep_start: document.getElementById('sleep-start').value,
+        sleep_end: document.getElementById('sleep-end').value,
+        subjects,
+        college_slots: collegeSlots,
+        available_hours: parseFloat(document.getElementById('study-hours').value),
+        goal_hours: parseFloat(document.getElementById('goal-hours').value),
+        mood_override: 7,
+        energy_override: 7
+      };
+      try {
+        const r = await fetch('/api/save_profile', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(profile)
+        });
+        const d = await r.json();
+        if(d.success) window.location.href = '/dashboard';
+        else alert('Error building schedule');
+      } catch(e) {
+        alert('Server error. Make sure Flask is running.');
+      }
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    // Init
+    renderSubjects();
+  </script>
+</body>
+</html>

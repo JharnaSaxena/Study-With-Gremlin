@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Gremlin — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+  /* ── Task cards ─────────────────────────────────── */
+  .tasks-grid {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 20px 24px;
+  }
+  .task-card {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--white);
+    overflow: hidden;
+    transition: border-color 0.2s, opacity 0.3s;
+  }
+  .task-card.done-card {
+    opacity: 0.5;
+    border-color: transparent;
+    background: var(--off);
+  }
+  .task-header {
+    display: flex; align-items: center;
+    gap: 12px; padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .task-color-bar {
+    width: 4px; height: 36px;
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .task-info { flex: 1; min-width: 0; }
+  .task-name {
+    font-size: 14px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .task-card.done-card .task-name { text-decoration: line-through; }
+  .task-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .task-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .task-mins {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--cherry);
+  }
+  .task-card.done-card .task-mins { color: var(--muted); }
+  .task-badge {
+    font-size: 10px; padding: 2px 7px;
+    border-radius: 20px; font-weight: 500;
+  }
+  .badge-study { background: rgba(139,0,0,0.08); color: var(--cherry); }
+  .badge-goal  { background: rgba(201,168,108,0.15); color: #7A5C0A; }
+
+  /* Progress ring */
+  .prog-ring { position: relative; width: 36px; height: 36px; flex-shrink:0; }
+  .prog-ring svg { transform: rotate(-90deg); }
+  .prog-track { fill:none; stroke:var(--off); stroke-width:3; }
+  .prog-fill  { fill:none; stroke-width:3; stroke-linecap:round;
+                transition: stroke-dashoffset 0.4s ease; }
+  .prog-pct {
+    position:absolute; inset:0; display:flex;
+    align-items:center; justify-content:center;
+    font-size:9px; font-weight:600; color:var(--text);
+  }
+
+  /* Sessions row */
+  .sessions-row {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 0 16px 14px 32px;
+  }
+  .session-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 12px; cursor: pointer;
+    background: var(--white);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .session-chip:hover { border-color: var(--cherry); }
+  .session-chip.active {
+    background: var(--cherry); color: white;
+    border-color: var(--cherry);
+  }
+  .session-chip.sess-done {
+    background: var(--off); color: var(--muted);
+    text-decoration: line-through;
+    border-color: transparent;
+  }
+  .session-chip.sess-done:hover { border-color: var(--muted); }
+  .sess-timer { font-family: 'Playfair Display', serif; font-weight: 700; }
+
+  /* ── Day tabs enhanced ──────────────────────────── */
+  .day-tab-wrap {
+    display: flex; align-items: center;
+    padding: 12px 20px; gap: 4px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .dtab {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 12px; border-radius: 5px;
+    cursor: pointer; border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; color: var(--muted); min-width: 52px;
+  }
+  .dtab:hover { background: var(--off); color: var(--text); }
+  .dtab.active { background: var(--cherry); color: white; }
+  .dtab.rest   { opacity: 0.45; }
+  .dtab-day  { font-size: 12px; font-weight: 600; }
+  .dtab-load { font-size: 10px; margin-top: 2px; opacity: 0.7; }
+  .dtab-dot  {
+    width: 5px; height: 5px; border-radius: 50%;
+    margin-top: 4px; background: currentColor; opacity: 0.5;
+  }
+  .dtab.active .dtab-dot { opacity: 1; background: white; }
+  .today-pill {
+    font-size: 9px; background: rgba(255,255,255,0.25);
+    padding: 1px 5px; border-radius: 8px; margin-top: 2px;
+  }
+
+  /* ── Pomo panel ─────────────────────────────────── */
+  .pomo-wrap { padding: 18px; }
+  .pomo-ring-wrap {
+    position: relative; width: 100px; height: 100px;
+    margin: 0 auto 14px;
+  }
+  .pomo-svg { transform: rotate(-90deg); }
+  .pomo-track { fill:none; stroke:var(--off); stroke-width:6; }
+  .pomo-arc   {
+    fill:none; stroke:var(--cherry); stroke-width:6;
+    stroke-linecap:round;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .pomo-center {
+    position:absolute; inset:0; display:flex;
+    flex-direction:column; align-items:center; justify-content:center;
+  }
+  .pomo-time {
+    font-family:'Playfair Display',serif;
+    font-size:22px; font-weight:700; line-height:1;
+  }
+  .pomo-lbl { font-size:10px; color:var(--muted); margin-top:2px; text-transform:uppercase; }
+  .pomo-subject { font-size:12px; color:var(--muted); text-align:center; margin-bottom:10px; }
+  .pomo-btns { display:flex; gap:8px; justify-content:center; margin-bottom:10px; }
+  .pomo-btn {
+    padding:7px 14px; border-radius:var(--r); font-size:12px;
+    font-family:'DM Sans',sans-serif; cursor:pointer;
+    border:1px solid var(--border); background:var(--white);
+    color:var(--text); transition:all 0.15s;
+  }
+  .pomo-btn.go { background:var(--cherry); color:white; border-color:var(--cherry); }
+  .pomo-btn.go:hover { background:var(--cherry-bright); }
+  .pomo-btn:hover { border-color:#aaa; }
+  .pomo-sets { display:flex; gap:4px; justify-content:center; }
+  .pomo-set-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:var(--border); transition:background 0.3s;
+  }
+  .pomo-set-dot.done { background:var(--cherry); }
+
+  /* ── Weekly goals ───────────────────────────────── */
+  .goals-section { padding: 20px 24px; }
+  .goal-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .goal-item:last-child { border-bottom: none; }
+  .goal-color { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .goal-info  { flex:1; min-width:0; }
+  .goal-name  { font-size:13px; font-weight:500; }
+  .goal-bar-wrap { height:4px; background:var(--off); border-radius:2px; margin-top:5px; }
+  .goal-bar-fill { height:100%; border-radius:2px; transition:width 0.5s ease; }
+  .goal-stat {
+    font-size:12px; color:var(--muted);
+    text-align:right; flex-shrink:0; min-width:60px;
+  }
+  .goal-stat strong { display:block; font-size:14px; color:var(--text); }
+
+  /* ── Stats row ──────────────────────────────────── */
+  .day-summary {
+    display:flex; gap:16px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--off);
+  }
+  .day-stat { text-align:center; }
+  .day-stat-val {
+    font-family:'Playfair Display',serif;
+    font-size:18px; font-weight:700;
+  }
+  .day-stat-lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* ── Spillover badge ────────────────────────────── */
+  .spill-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; padding:3px 8px; border-radius:20px;
+    background:rgba(201,168,108,0.2); color:#7A5C0A;
+    margin-left:6px;
+  }
+
+  /* ── Empty / rest ───────────────────────────────── */
+  .day-empty {
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:52px 20px;
+    color:var(--muted); gap:8px;
+  }
+
+  /* ── Toast ──────────────────────────────────────── */
+  .toast {
+    position:fixed; bottom:28px; left:50%;
+    transform:translateX(-50%) translateY(60px);
+    background:var(--cherry-deep); color:white;
+    padding:11px 22px; border-radius:6px; font-size:13px;
+    z-index:300; opacity:0; transition:all 0.3s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* ── Week bar chart ─────────────────────────────── */
+  .wk-chart { display:flex; gap:6px; align-items:flex-end; height:64px; margin-bottom:10px; }
+  .wk-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .wk-bar-bg { flex:1; width:100%; background:var(--off); border-radius:2px; display:flex; align-items:flex-end; }
+  .wk-bar-fg { width:100%; border-radius:2px; transition:height 0.5s ease; min-height:2px; }
+  .wk-lbl { font-size:10px; color:var(--muted); }
+  .wk-val { font-size:9px; color:var(--muted); }
+  </style>
+</head>
+<body class="page-dashboard">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-icon">✦</div>
+    <div class="sb-name">Gremlin</div>
+    <div class="sb-sub">Study Optimiser</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Views</div>
+    <button class="nav-link active" onclick="setView('today',this)"><span class="nav-ic">📋</span> Today's Plan</button>
+    <button class="nav-link" onclick="setView('week',this)"><span class="nav-ic">📅</span> Weekly Goals</button>
+    <button class="nav-link" onclick="setView('stats',this)"><span class="nav-ic">📊</span> Analytics</button>
+    <div class="sb-section">Tools</div>
+    <button class="nav-link" onclick="openMood()"><span class="nav-ic">💙</span> Mood Check-in</button>
+    <button class="nav-link" onclick="window.location.href='/onboarding'"><span class="nav-ic">⚙️</span> Rebuild Schedule</button>
+    <button class="nav-link" onclick="doLogout()"><span class="nav-ic">↩</span> Sign Out</button>
+  </nav>
+  <div class="sb-footer">
+    <div class="user-row">
+      <div class="user-av" id="user-av">?</div>
+      <div>
+        <div class="user-nm" id="user-nm">Loading…</div>
+        <div class="user-role">Dual-degree student</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="topbar-title">Today's Plan</div>
+    <div class="topbar-right">
+      <span id="topbar-meta" style="font-size:12px;color:var(--muted);font-style:italic;"></span>
+      <button class="btn-mood" onclick="openMood()">💙 Check In</button>
+    </div>
+  </header>
+
+  <div class="dash-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card hl">
+        <div class="stat-lbl">Opt. Score</div>
+        <div class="stat-val" id="st-score">—</div>
+        <div class="stat-hint">Efficiency − burnout penalty</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Weekly Study</div>
+        <div class="stat-val" id="st-study">—</div>
+        <div class="stat-hint">Across all subjects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Goal Hours</div>
+        <div class="stat-val" id="st-goal">—</div>
+        <div class="stat-hint">Secondary courses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Burnout Risk</div>
+        <div class="stat-val" id="st-risk">—</div>
+        <div class="stat-hint" id="st-risk-hint"></div>
+      </div>
+    </div>
+
+    <!-- TODAY VIEW -->
+    <div id="view-today">
+      <div class="sched-layout">
+
+        <!-- Left: task cards -->
+        <div class="sched-main">
+          <div class="sec-header">
+            <div class="sec-title" id="plan-title">Today's Focus Plan</div>
+            <div class="opt-badge" id="opt-badge">✦ Optimised</div>
+          </div>
+
+          <!-- Day tabs -->
+          <div class="day-tab-wrap" id="day-tabs"></div>
+
+          <!-- Day summary bar -->
+          <div class="day-summary" id="day-summary"></div>
+
+          <!-- Task list -->
+          <div class="tasks-grid" id="task-list"></div>
+        </div>
+
+        <!-- Right: pomo + gremlin + priority -->
+        <div class="side-panel">
+          <div class="panel">
+            <div class="panel-h">🍅 Focus Timer</div>
+            <div class="pomo-wrap">
+              <div class="pomo-subject" id="pomo-subject">Pick a session to start</div>
+              <div class="pomo-ring-wrap">
+                <svg class="pomo-svg" width="100" height="100" viewBox="0 0 100 100">
+                  <circle class="pomo-track" cx="50" cy="50" r="44"/>
+                  <circle class="pomo-arc" id="pomo-arc" cx="50" cy="50" r="44"/>
+                </svg>
+                <div class="pomo-center">
+                  <div class="pomo-time" id="pomo-time">25:00</div>
+                  <div class="pomo-lbl"  id="pomo-lbl">Ready</div>
+                </div>
+              </div>
+              <div class="pomo-btns">
+                <button class="pomo-btn go" id="pomo-start" onclick="pomoToggle()">▶ Start</button>
+                <button class="pomo-btn"    onclick="pomoReset()">↺ Reset</button>
+              </div>
+              <div class="pomo-sets" id="pomo-sets"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h">Gremlin says…</div>
+            <div class="panel-b">
+              <div class="gremlin-msg" id="gremlin-msg">—</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="gremlin-sub"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h">Burnout Monitor</div>
+            <div class="panel-b" id="burnout-panel"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h">Priority Order</div>
+            <div class="panel-b"><div class="prio-list" id="prio-list"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY GOALS VIEW -->
+    <div id="view-week" class="hidden">
+      <div class="sched-layout">
+        <div class="sched-main">
+          <div class="sec-header">
+            <div class="sec-title">Weekly Goals</div>
+            <div class="opt-badge" id="weekly-badge">This week</div>
+          </div>
+          <div class="goals-section" id="weekly-goals"></div>
+        </div>
+        <div class="side-panel">
+          <div class="panel">
+            <div class="panel-h">Hours per Day</div>
+            <div class="panel-b">
+              <div class="wk-chart" id="wk-chart"></div>
+              <div style="font-size:11px;color:var(--muted)">Sunday = rest. Saturday = light load.</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h">Risk per Day</div>
+            <div class="panel-b" id="risk-per-day"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS VIEW -->
+    <div id="view-stats" class="hidden">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="panel">
+          <div class="panel-h">Subject Breakdown</div>
+          <div class="panel-b" id="subj-breakdown"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h">Schedule Health</div>
+          <div class="panel-b" id="health-panel"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MOOD MODAL -->
+<div class="modal-overlay" id="mood-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Daily Check-in</div>
+      <div class="modal-sub">Gremlin will adapt the plan to how you feel right now.</div>
+    </div>
+    <div class="modal-body">
+      <div class="mood-grid">
+        <div class="range-group">
+          <div class="range-header">
+            <span class="range-lbl">Mood</span>
+            <span class="range-val" id="mood-val">7</span>
+          </div>
+          <input type="range" id="mood-slider" min="1" max="10" value="7"
+            oninput="document.getElementById('mood-val').textContent=this.value;updateMoodPreview()"/>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
+            <span>😔 Struggling</span><span>😊 Great</span>
+          </div>
+        </div>
+        <div class="range-group">
+          <div class="range-header">
+            <span class="range-lbl">Energy</span>
+            <span class="range-val" id="energy-val">7</span>
+          </div>
+          <input type="range" id="energy-slider" min="1" max="10" value="7"
+            oninput="document.getElementById('energy-val').textContent=this.value;updateMoodPreview()"/>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
+            <span>😴 Drained</span><span>⚡ Charged</span>
+          </div>
+        </div>
+      </div>
+      <div id="mood-preview" style="padding:11px 14px;background:var(--cherry-pale);
+        border-radius:4px;font-size:13px;color:var(--cherry-deep);font-style:italic;line-height:1.5;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeMood()">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 22px;" onclick="submitMood()">Update plan →</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading hidden" id="loading">
+  <div>
+    <div class="spin"></div>
+    <div class="load-txt">Re-optimising your plan…</div>
+    <div class="load-math">P(s) = 0.5·diff + 0.2·drain + 0.3·goal_weight</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const JS_TO_IDX = [6,0,1,2,3,4,5]; // JS getDay() → DAYS index
+const todayName = DAYS[JS_TO_IDX[new Date().getDay()]];
+
+let schedule   = null;
+let currentDay = todayName;
+
+// Task completion state: { 'DaySubject': {done_min, sessions:[{done}]} }
+let progress = JSON.parse(localStorage.getItem('gremlin_progress') || '{}');
+// Spillover: { subjectName: extraMinutes }
+let spillover = JSON.parse(localStorage.getItem('gremlin_spillover') || '{}');
+
+// ── Pomodoro ─────────────────────────────────────────────────────────────
+const CIRC = 2 * Math.PI * 44; // ~276.5
+let pomoSecs = 25*60, pomoTotal = 25*60;
+let pomoRunning = false, pomoTimer = null;
+let pomoSet = 1, pomoPhase = 'focus';
+let activeSession = null; // {dayKey, taskIdx, sessIdx}
+
+function pomoRender() {
+  const pct    = pomoSecs / pomoTotal;
+  const offset = CIRC * (1 - pct);
+  const arc    = document.getElementById('pomo-arc');
+  arc.style.strokeDasharray  = CIRC;
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = pomoPhase === 'break' ? 'var(--gold)' : 'var(--cherry)';
+  const m = String(Math.floor(pomoSecs/60)).padStart(2,'0');
+  const s = String(pomoSecs%60).padStart(2,'0');
+  document.getElementById('pomo-time').textContent = `${m}:${s}`;
+  document.getElementById('pomo-lbl').textContent  =
+    pomoPhase === 'focus' ? 'Focus' : 'Break';
+  // Dots
+  document.getElementById('pomo-sets').innerHTML =
+    [1,2,3,4].map(i =>
+      `<div class="pomo-set-dot${i<pomoSet?' done':''}"></div>`).join('');
+}
+
+function startSessionTimer(label, mins, dayKey, taskIdx, sessIdx) {
+  pomoClear();
+  activeSession  = {dayKey, taskIdx, sessIdx};
+  pomoPhase      = 'focus';
+  pomoSecs       = mins * 60;
+  pomoTotal      = mins * 60;
+  document.getElementById('pomo-subject').textContent = label;
+  document.getElementById('pomo-start').textContent = '▶ Start';
+  document.getElementById('pomo-start').classList.add('go');
+  pomoRender();
+  showToast(`Timer set: ${label} · ${mins}min`);
+  // Mark session as active visually
+  renderDay(currentDay);
+}
+
+function pomoToggle() {
+  if (pomoRunning) {
+    clearInterval(pomoTimer);
+    pomoRunning = false;
+    document.getElementById('pomo-start').textContent = '▶ Resume';
+  } else {
+    pomoRunning = true;
+    document.getElementById('pomo-start').textContent = '⏸ Pause';
+    pomoTimer = setInterval(() => {
+      pomoSecs--;
+      if (pomoSecs <= 0) {
+        pomoClear();
+        if (pomoPhase === 'focus') {
+          // Auto-mark session done
+          if (activeSession) markSessionDone(activeSession, true);
+          pomoPhase = 'break';
+          pomoSecs  = pomoTotal === 25*60 ? 5*60 : 10*60;
+          pomoTotal = pomoSecs;
+          showToast('Session done! Take a break. ☕', 4000);
+          pomoBell();
+        } else {
+          pomoPhase = 'focus';
+          if (pomoSet < 4) pomoSet++;
+          pomoSecs  = 25*60; pomoTotal = 25*60;
+          showToast('Break over — back to it. 🔥', 3000);
+          pomoBell();
+        }
+        document.getElementById('pomo-start').textContent = '▶ Start';
+      }
+      pomoRender();
+    }, 1000);
+  }
+  pomoRender();
+}
+
+function pomoReset() {
+  pomoClear();
+  pomoSecs = pomoTotal;
+  document.getElementById('pomo-start').textContent = '▶ Start';
+  pomoRender();
+}
+
+function pomoClear() {
+  clearInterval(pomoTimer);
+  pomoRunning = false;
+}
+
+function pomoBell() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 520;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(); osc.stop(ctx.currentTime + 0.8);
+  } catch(e) {}
+}
+
+// ── Progress & Spillover ─────────────────────────────────────────────────
+function progressKey(day, taskName) { return `${day}::${taskName}`; }
+
+function getTaskProgress(day, taskName) {
+  const k = progressKey(day, taskName);
+  return progress[k] || {done_min: 0, sessions: []};
+}
+
+function markSessionDone(ref, auto=false) {
+  if (!ref || !schedule) return;
+  const {dayKey, taskIdx, sessIdx} = ref;
+  const task = schedule.weekly[dayKey]?.tasks[taskIdx];
+  if (!task) return;
+  const k = progressKey(dayKey, task.subject);
+  if (!progress[k]) progress[k] = {done_min: 0, sessions: []};
+  const p = progress[k];
+  if (!p.sessions[sessIdx]) p.sessions[sessIdx] = false;
+  if (p.sessions[sessIdx]) {
+    // Un-mark
+    p.sessions[sessIdx] = false;
+    p.done_min = Math.max(0, p.done_min - task.sessions[sessIdx].min);
+  } else {
+    p.sessions[sessIdx] = true;
+    p.done_min += task.sessions[sessIdx].min;
+  }
+  // Check if all sessions done
+  const allDone = task.sessions.every((_,i) => p.sessions[i]);
+  if (allDone) {
+    showToast(`✓ ${task.subject} done for today!`, 3000);
+    // Clear any spillover
+    if (spillover[task.subject]) {
+      delete spillover[task.subject];
+      saveState();
+    }
+  }
+  saveState();
+  renderDay(currentDay);
+  renderSidePanel();
+}
+
+function computeAndSpillLeftovers(day) {
+  if (!schedule || !schedule.weekly[day]) return;
+  const tasks = schedule.weekly[day].tasks || [];
+  tasks.forEach(task => {
+    const p = getTaskProgress(day, task.subject);
+    const remaining = task.total_min - p.done_min;
+    if (remaining > 0 && p.done_min > 0) {
+      // Partial completion — spill remainder
+      spillover[task.subject] = (spillover[task.subject] || 0) + remaining;
+    }
+  });
+  saveState();
+  showToast('Leftovers shifted to upcoming days. 📅', 3500);
+}
+
+function saveState() {
+  localStorage.setItem('gremlin_progress', JSON.stringify(progress));
+  localStorage.setItem('gremlin_spillover', JSON.stringify(spillover));
+}
+
+// ── Load data ────────────────────────────────────────────────────────────
+async function loadSchedule() {
+  try {
+    const r = await fetch('/api/get_schedule');
+    const d = await r.json();
+    if (!d.schedule) { window.location.href='/onboarding'; return; }
+    schedule = d.schedule;
+    setUser(d.name || 'Student');
+    renderAll();
+    pomoRender();
+  } catch(e) { console.error(e); }
+}
+
+function setUser(n) {
+  document.getElementById('user-nm').textContent = n;
+  document.getElementById('user-av').textContent = n[0].toUpperCase();
+}
+
+// ── Render all ───────────────────────────────────────────────────────────
+function renderAll() {
+  if (!schedule) return;
+  const s = schedule.stats;
+  document.getElementById('st-score').textContent = s.optimization_score+'/100';
+  document.getElementById('st-study').textContent = fmtH(s.total_study_min);
+  document.getElementById('st-goal').textContent  = fmtH(s.total_goal_min);
+  document.getElementById('st-risk').textContent  = cap(s.burnout_risk);
+  document.getElementById('st-risk-hint').innerHTML =
+    s.burnout_risk==='low'   ? '<span style="color:var(--green)">▲ Healthy</span>' :
+    s.burnout_risk==='medium'? '<span style="color:var(--gold)">● Watch this</span>' :
+                               '<span style="color:var(--cherry)">▼ Try Gentle mode</span>';
+  document.getElementById('opt-badge').textContent =
+    `✦ Score ${s.optimization_score}/100 · ${cap(s.mode)} mode`;
+  document.getElementById('topbar-meta').textContent =
+    `Wellbeing ${Math.round(s.wellbeing*100)}% · Rest: ${s.rest_day}`;
+  renderDayTabs();
+  renderDay(currentDay);
+  renderSidePanel();
+  renderWeeklyGoals();
+  renderAnalytics();
+}
+
+// ── Day tabs ─────────────────────────────────────────────────────────────
+function renderDayTabs() {
+  document.getElementById('day-tabs').innerHTML = DAYS.map(d => {
+    const data     = schedule.weekly[d];
+    const isRest   = data?.is_rest;
+    const isToday  = d === todayName;
+    const isActive = d === currentDay;
+    const mins     = data?.total_minutes || 0;
+    const risk     = data?.burnout_risk || 'low';
+    const riskDot  = isRest ? '' : `<div class="dtab-dot" style="background:${riskColor(risk)}"></div>`;
+    const todayEl  = isToday ? `<div class="today-pill">Today</div>` : '';
+    return `
+      <button class="dtab${isActive?' active':''}${isRest?' rest':''}"
+        onclick="switchDay(this,'${d}')">
+        <div class="dtab-day">${d}</div>
+        <div class="dtab-load">${isRest?'Rest':fmtH(mins)}</div>
+        ${riskDot}${todayEl}
+      </button>`;
+  }).join('');
+}
+
+function switchDay(el, day) {
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentDay = day;
+  renderDay(day);
+}
+
+// ── Task list ─────────────────────────────────────────────────────────────
+function renderDay(day) {
+  if (!schedule) return;
+  const data = schedule.weekly[day];
+  const list = document.getElementById('task-list');
+  const summ = document.getElementById('day-summary');
+
+  document.getElementById('plan-title').textContent =
+    day === todayName ? "Today's Focus Plan" : `${day}'s Plan`;
+
+  if (!data || data.is_rest) {
+    list.innerHTML = `
+      <div class="day-empty">
+        <span style="font-size:40px">🌿</span>
+        <strong>Rest Day</strong>
+        <span>No study scheduled — recovery is part of the algorithm.</span>
+      </div>`;
+    summ.innerHTML = '';
+    return;
+  }
+
+  const tasks   = data.tasks || [];
+  const totalDone = tasks.reduce((n,t) => n + getTaskProgress(day,t.subject).done_min, 0);
+  const totalMin  = data.total_minutes;
+
+  // Day summary bar
+  const pct = totalMin ? Math.round(totalDone/totalMin*100) : 0;
+  summ.innerHTML = `
+    <div class="day-stat">
+      <div class="day-stat-val">${tasks.length}</div>
+      <div class="day-stat-lbl">Subjects</div>
+    </div>
+    <div class="day-stat">
+      <div class="day-stat-val">${fmtH(totalMin)}</div>
+      <div class="day-stat-lbl">Total</div>
+    </div>
+    <div class="day-stat">
+      <div class="day-stat-val" style="color:var(--green)">${pct}%</div>
+      <div class="day-stat-lbl">Done</div>
+    </div>
+    <div class="day-stat">
+      <div class="day-stat-val" style="color:${riskColor(data.burnout_risk)}">${cap(data.burnout_risk)}</div>
+      <div class="day-stat-lbl">Risk</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;gap:8px;">
+      <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:3px;transition:width 0.5s;"></div>
+      </div>
+      <button onclick="computeAndSpillLeftovers('${day}')" style="
+        padding:4px 10px;font-size:11px;border:1px solid var(--border);
+        border-radius:var(--r);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+        color:var(--muted);white-space:nowrap;" title="Move unfinished tasks to next day">
+        ↷ Shift leftovers
+      </button>
+    </div>`;
+
+  if (tasks.length === 0) {
+    list.innerHTML = `<div class="day-empty"><span style="font-size:32px">✓</span><span>Nothing scheduled — you're free!</span></div>`;
+    return;
+  }
+
+  list.innerHTML = tasks.map((task, ti) => {
+    const p        = getTaskProgress(day, task.subject);
+    const isDone   = task.sessions.every((_,si) => p.sessions[si]);
+    const doneMins = p.done_min;
+    const pctDone  = task.total_min ? Math.round(doneMins/task.total_min*100) : 0;
+    const spill    = spillover[task.subject] ? `<span class="spill-badge">+${spillover[task.subject]}min carried</span>` : '';
+    const ringR    = 15, ringC = 2*Math.PI*ringR;
+    const ringOff  = ringC*(1-pctDone/100);
+
+    const sessHtml = task.sessions.map((sess, si) => {
+      const sessKey   = `${progressKey(day,task.subject)}::${si}`;
+      const sessDone  = p.sessions[si];
+      const isActive  = activeSession &&
+        activeSession.dayKey===day &&
+        activeSession.taskIdx===ti &&
+        activeSession.sessIdx===si;
+      return `
+        <div class="session-chip ${sessDone?'sess-done':''} ${isActive?'active':''}"
+          onclick="handleSessionClick('${day}',${ti},${si},'${task.subject} · ${sess.label}',${sess.min})">
+          <span class="sess-timer">${sess.min}m</span>
+          <span>${sess.label}</span>
+          ${sessDone ? '<span>✓</span>' : '<span>▶</span>'}
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="task-card ${isDone?'done-card':''}" id="task-${day}-${ti}">
+        <div class="task-header" onclick="toggleSessions('task-body-${day}-${ti}')">
+          <div class="task-color-bar" style="background:${task.color}"></div>
+          <div class="task-info">
+            <div class="task-name">${task.subject}${spill}</div>
+            <div class="task-meta">
+              Priority ${task.priority} ·
+              ${task.sessions.length} session${task.sessions.length>1?'s':''} ·
+              chunk ${task.chunk_min}min
+            </div>
+          </div>
+          <div class="task-right">
+            <span class="task-badge badge-${task.type}">${cap(task.type)}</span>
+            <div class="prog-ring">
+              <svg width="36" height="36" viewBox="0 0 36 36">
+                <circle class="prog-track" cx="18" cy="18" r="${ringR}" transform="rotate(-90 18 18)"/>
+                <circle class="prog-fill" cx="18" cy="18" r="${ringR}"
+                  stroke="${task.color}"
+                  stroke-dasharray="${ringC}"
+                  stroke-dashoffset="${ringOff}"
+                  transform="rotate(-90 18 18)"/>
+              </svg>
+              <div class="prog-pct">${pctDone}%</div>
+            </div>
+            <div class="task-mins">${task.total_min}<span style="font-size:11px;color:var(--muted)">m</span></div>
+          </div>
+        </div>
+        <div id="task-body-${day}-${ti}" class="sessions-row ${isDone?'hidden':''}">
+          ${sessHtml}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleSessions(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('hidden');
+}
+
+function handleSessionClick(day, taskIdx, sessIdx, label, mins) {
+  const p = getTaskProgress(day, schedule.weekly[day].tasks[taskIdx].subject);
+  if (p.sessions[sessIdx]) {
+    // Already done — toggle off
+    markSessionDone({dayKey:day, taskIdx, sessIdx});
+  } else {
+    // Start timer for this session
+    startSessionTimer(label, mins, day, taskIdx, sessIdx);
+  }
+}
+
+// ── Weekly goals ──────────────────────────────────────────────────────────
+function renderWeeklyGoals() {
+  if (!schedule) return;
+  const subs = {};
+  DAYS.forEach(d => {
+    (schedule.weekly[d]?.tasks||[]).forEach(t => {
+      if (!subs[t.subject]) subs[t.subject] = {total:0, done:0, color:t.color, type:t.type};
+      subs[t.subject].total += t.total_min;
+      subs[t.subject].done  += getTaskProgress(d,t.subject).done_min;
+    });
+  });
+
+  const sorted = Object.entries(subs).sort((a,b) => b[1].total-a[1].total);
+  document.getElementById('weekly-badge').textContent =
+    `${sorted.length} subjects · ${fmtH(sorted.reduce((n,[,v])=>n+v.total,0))} total`;
+
+  document.getElementById('weekly-goals').innerHTML = sorted.map(([name,v]) => {
+    const pct = v.total ? Math.round(v.done/v.total*100) : 0;
+    return `
+      <div class="goal-item">
+        <div class="goal-color" style="background:${v.color}"></div>
+        <div class="goal-info">
+          <div class="goal-name">${name}
+            <span class="task-badge badge-${v.type}" style="margin-left:4px">${cap(v.type)}</span>
+          </div>
+          <div class="goal-bar-wrap">
+            <div class="goal-bar-fill" style="width:${pct}%;background:${v.color}"></div>
+          </div>
+        </div>
+        <div class="goal-stat">
+          <strong>${fmtH(v.total)}</strong>
+          ${pct}% done
+        </div>
+      </div>`;
+  }).join('');
+
+  // Bar chart
+  const maxMin = Math.max(...DAYS.map(d=>schedule.weekly[d]?.total_minutes||0),1);
+  document.getElementById('wk-chart').innerHTML = DAYS.map(d => {
+    const m   = schedule.weekly[d]?.total_minutes||0;
+    const pct = Math.round(m/maxMin*100);
+    const col = schedule.weekly[d]?.is_rest ? 'var(--border)' :
+                d===todayName ? 'var(--cherry)' : '#C49898';
+    return `
+      <div class="wk-col">
+        <div class="wk-val">${m?fmtH(m):''}</div>
+        <div class="wk-bar-bg">
+          <div class="wk-bar-fg" style="height:${pct}%;background:${col}"></div>
+        </div>
+        <div class="wk-lbl">${d}</div>
+      </div>`;
+  }).join('');
+
+  // Risk per day
+  const riskColors = {low:'var(--green)',medium:'var(--gold)',high:'var(--cherry)'};
+  document.getElementById('risk-per-day').innerHTML = DAYS.map(d => {
+    const r    = schedule.weekly[d]?.burnout_risk||'low';
+    const rest = schedule.weekly[d]?.is_rest;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div style="width:30px;font-size:12px;font-weight:500;color:var(--muted)">${d}</div>
+        <div style="flex:1;height:5px;background:var(--off);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${rest?0:r==='low'?28:r==='medium'?62:92}%;
+            background:${rest?'transparent':riskColors[r]};border-radius:3px;transition:width 0.5s;"></div>
+        </div>
+        <div style="font-size:11px;width:40px;color:${rest?'var(--muted)':riskColors[r]}">
+          ${rest?'Rest':cap(r)}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────
+function renderAnalytics() {
+  if (!schedule) return;
+  const s = schedule.stats;
+  // Subject totals
+  const subMap = {};
+  DAYS.forEach(d => {
+    (schedule.weekly[d]?.tasks||[]).forEach(t => {
+      subMap[t.subject] = (subMap[t.subject]||0) + t.total_min;
+    });
+  });
+  const total = Object.values(subMap).reduce((a,b)=>a+b,0)||1;
+  const cols  = {};
+  s.subjects.forEach(sub => cols[sub.name]=sub.color);
+
+  document.getElementById('subj-breakdown').innerHTML =
+    Object.entries(subMap).sort((a,b)=>b[1]-a[1]).map(([name,m]) => {
+      const pct = Math.round(m/total*100);
+      return `
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="font-weight:500">${name}</span>
+            <span style="color:var(--muted)">${fmtH(m)} · ${pct}%</span>
+          </div>
+          <div style="height:5px;background:var(--off);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${cols[name]||'var(--cherry)'};border-radius:3px;"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+  document.getElementById('health-panel').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:11px;font-size:13px;">
+      ${[
+        ['Opt. score', s.optimization_score+'/100'],
+        ['Efficiency', s.efficiency+'%'],
+        ['Burnout risk', cap(s.burnout_risk)],
+        ['Mode', cap(s.mode)],
+        ['Wellbeing', Math.round(s.wellbeing*100)+'%'],
+        ['Adherence target', s.adherence_target+'%'],
+        ['Rest day', s.rest_day],
+        ['Light day', s.light_day],
+      ].map(([l,v])=>`
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--muted)">${l}</span><strong>${v}</strong>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── Side panel ────────────────────────────────────────────────────────────
+function renderSidePanel() {
+  if (!schedule) return;
+  const s    = schedule.stats;
+  const risk = s.burnout_risk;
+  const wb   = s.wellbeing;
+
+  const msgs = {
+    high:   "Load is elevated. Missing a session is fine — I'll redistribute it.",
+    medium: "Solid pace. Watch your energy mid-week when fatigue peaks.",
+    low:    "Healthy load. Consistency here beats any all-nighter.",
+  };
+  document.getElementById('gremlin-msg').textContent = msgs[risk];
+  document.getElementById('gremlin-sub').textContent =
+    `Wellbeing ${Math.round(wb*100)}% · F(t) = Σ load·e^(−λΔt)`;
+
+  const riskPct = {low:24,medium:58,high:88}[risk];
+  document.getElementById('burnout-panel').innerHTML = `
+    <div class="burnout-row">
+      <div class="burnout-hdr">
+        <span>Cognitive load</span>
+        <span style="color:${riskColor(risk)};font-weight:600;">${risk.toUpperCase()}</span>
+      </div>
+      <div class="burnout-bar">
+        <div class="burnout-fill ${risk}" style="width:${riskPct}%"></div>
+      </div>
+      <div class="burnout-lbl">decay λ=0.3/h · mode cap ${s.mode}</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;">
+      Sun = full rest. Sat = 55% load. Click "↷ Shift leftovers" to redistribute unfinished tasks.
+    </div>`;
+
+  const subs = s.subjects||[];
+  const maxP = Math.max(...subs.map(s=>s.priority),0.01);
+  document.getElementById('prio-list').innerHTML = subs.map(sub => `
+    <div class="prio-item">
+      <div class="prio-clr" style="background:${sub.color}"></div>
+      <div class="prio-info">
+        <div class="prio-name">${sub.name}</div>
+        <div class="prio-bar">
+          <div class="prio-fill" style="width:${Math.round(sub.priority/maxP*100)}%"></div>
+        </div>
+      </div>
+      <div class="prio-num">${sub.priority.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+// ── Mood ──────────────────────────────────────────────────────────────────
+function updateMoodPreview() {
+  const m = +document.getElementById('mood-slider').value;
+  const e = +document.getElementById('energy-slider').value;
+  document.getElementById('mood-preview').textContent =
+    m<=3||e<=3 ? "I'll lighten the load and space things out. Rest counts." :
+    m<=6||e<=6 ? "Balanced day — no pressure. I'll keep it manageable." :
+                 "Great energy! Hard subjects get priority slots.";
+}
+
+function openMood()  { updateMoodPreview(); document.getElementById('mood-modal').classList.add('open'); }
+function closeMood() { document.getElementById('mood-modal').classList.remove('open'); }
+
+async function submitMood() {
+  const mood   = +document.getElementById('mood-slider').value;
+  const energy = +document.getElementById('energy-slider').value;
+  closeMood();
+  document.getElementById('loading').classList.remove('hidden');
+  try {
+    const r = await fetch('/api/mood_checkin',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mood,energy})
+    });
+    const d = await r.json();
+    if (d.success && d.schedule) {
+      schedule = d.schedule;
+      renderAll();
+      showToast(d.message||'Plan updated ✓', 4000);
+    }
+  } catch(e) { showToast('Network error.'); }
+  finally { document.getElementById('loading').classList.add('hidden'); }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmtH(min) {
+  if (!min) return '—';
+  const h = Math.floor(min/60), m = min%60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
+function cap(s) { return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+
+function riskColor(r) {
+  return r==='low'?'var(--green)':r==='medium'?'var(--gold)':'var(--cherry)';
+}
+
+function setView(v, el) {
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  el.classList.add('active');
+  ['today','week','stats'].forEach(id => {
+    document.getElementById('view-'+id).classList.toggle('hidden', id!==v);
+  });
+  const titles = {today:"Today's Plan",week:'Weekly Goals',stats:'Analytics'};
+  document.getElementById('topbar-title').textContent = titles[v];
+}
+
+async function doLogout() {
+  await fetch('/api/logout');
+  window.location.href = '/';
+}
+
+function showToast(msg, ms=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadSchedule();
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gremlin — Study Smarter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="page-index">
+
+  <div class="split-left">
+    <div class="split-left__inner">
+      <div class="logo-mark">G</div>
+      <div class="left-content">
+        <h1 class="headline">Stop surviving.<br/><em>Start studying.</em></h1>
+        <p class="subline">A mathematically optimised planner for students juggling two degrees — without burning out.</p>
+        <ul class="feature-list">
+          <li><span class="dot"></span>Linear programming maximises your focus time</li>
+          <li><span class="dot"></span>Circadian energy model places hard work at peak hours</li>
+          <li><span class="dot"></span>Burnout buffer enforced by constraint satisfaction</li>
+          <li><span class="dot"></span>Fatigue decay function prevents cognitive overload</li>
+        </ul>
+      </div>
+      <p class="tagline-bottom">Compete with the valley of death — with Gremlin.</p>
+    </div>
+  </div>
+
+  <div class="split-right">
+    <div class="form-card" id="signup-panel">
+      <div class="brand-row">
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">Gremlin</span>
+      </div>
+      <h2 class="form-title">Create your account</h2>
+      <p class="form-subtitle">Start conquering your dual-degree schedule in minutes</p>
+
+      <div class="field-group">
+        <label for="fname">Full Name</label>
+        <input type="text" id="fname" class="fi" placeholder="John Doe" />
+      </div>
+      <div class="field-group">
+        <label for="femail">Email</label>
+        <input type="email" id="femail" class="fi" placeholder="you@university.edu" />
+      </div>
+      <div class="field-group">
+        <label for="fpwd">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="fpwd" class="fi" placeholder="Create a strong password" />
+          <button class="eye-btn" type="button" onclick="togglePwd()">◎</button>
+        </div>
+      </div>
+
+      <p class="err" id="signup-err"></p>
+      <button class="btn-primary" onclick="doSignup()">Create account <span>→</span></button>
+      <p class="legal">By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
+      <p class="signin-link">Already have an account? <a onclick="showSignin()">Sign in</a></p>
+      <div class="divider"><span>Or continue with</span></div>
+      <div class="oauth-row">
+        <button class="btn-oauth" onclick="alert('OAuth coming soon')">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Google
+        </button>
+        <button class="btn-oauth" onclick="alert('OAuth coming soon')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </button>
+      </div>
+    </div>
+
+    <!-- SIGNIN PANEL -->
+    <div class="form-card hidden" id="signin-panel">
+      <div class="brand-row">
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">Gremlin</span>
+      </div>
+      <h2 class="form-title">Welcome back</h2>
+      <p class="form-subtitle">Sign in to your optimised schedule</p>
+      <div class="field-group">
+        <label>Email</label>
+        <input type="email" id="si-email" class="fi" placeholder="you@university.edu" />
+      </div>
+      <div class="field-group">
+        <label>Password</label>
+        <input type="password" id="si-pwd" class="fi" placeholder="Your password" />
+      </div>
+      <p class="err" id="signin-err"></p>
+      <button class="btn-primary" onclick="doSignin()">Sign in →</button>
+      <p class="signin-link" style="margin-top:16px;">No account? <a onclick="showSignup()">Create one</a></p>
+    </div>
+  </div>
+
+  <script>
+    function togglePwd() {
+      const p = document.getElementById('fpwd');
+      p.type = p.type === 'password' ? 'text' : 'password';
+    }
+    function showSignin() {
+      document.getElementById('signup-panel').classList.add('hidden');
+      document.getElementById('signin-panel').classList.remove('hidden');
+    }
+    function showSignup() {
+      document.getElementById('signin-panel').classList.add('hidden');
+      document.getElementById('signup-panel').classList.remove('hidden');
+    }
+    async function doSignup() {
+      const name = document.getElementById('fname').value.trim();
+      const email = document.getElementById('femail').value.trim();
+      const pw = document.getElementById('fpwd').value;
+      const err = document.getElementById('signup-err');
+      err.style.display = 'none';
+      if (!name || !email || !pw) { err.textContent = 'Please fill all fields.'; err.style.display = 'block'; return; }
+      const r = await fetch('/api/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, email, password: pw}) });
+      const d = await r.json();
+      if (d.error) { err.textContent = d.error; err.style.display = 'block'; }
+      else window.location.href = '/onboarding';
+    }
+    async function doSignin() {
+      const email = document.getElementById('si-email').value.trim();
+      const pw = document.getElementById('si-pwd').value;
+      const err = document.getElementById('signin-err');
+      err.style.display = 'none';
+      const r = await fetch('/api/signin', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password: pw}) });
+      const d = await r.json();
+      if (d.error) { err.textContent = d.error; err.style.display = 'block'; }
+      else window.location.href = d.has_profile ? '/dashboard' : '/onboarding';
+    }
+  </script>
+</body>
+</html>
